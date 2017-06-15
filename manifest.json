@@ -18,6 +18,7 @@
         , "default_popup": "about.html"
     }
     , "permissions": [
+      "storage",
     "activeTab"
     , "https://ajax.googleapis.com/"
   ]

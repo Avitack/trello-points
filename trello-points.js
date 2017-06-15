@@ -29,7 +29,19 @@ var $checkboxSpanStart = $('<span class="list-checkbox">');
 var doneCountingHiddenFalse = '<input type="hidden" name="done-counting" value="false" />';
 var doneCountingHiddenTrue = '<input type="hidden" name="done-counting" value="true" />';
 
-function findCountingList() {
+// find countingList (nameOfList)
+// get totalPoints from localStorage
+function setup() {
+
+  chrome.storage.local.get({'totalPoints': 0}, function(result){
+    console.log("result: " + result.totalPoints);
+    totalPoints = parseInt(result.totalPoints);
+  });
+  // if (fromStorage !== undefined) {
+    console.log("Got totalPoints: " + totalPoints);
+  //   totalPoints = parseInt(fromStorage);
+  // }
+
   var $list;
   var $listCards;
 
@@ -225,9 +237,19 @@ function computePoints() {
                 }
 
                 console.log("Total points: " + totalPoints);
+                chrome.storage.local.set({'totalPoints': totalPoints}, function(){
+                  if (chrome.extension.lastError) {
+                    // some error
+                  }
+                });
+                // var fromStorage = localStorage.getItem('totalPoints');
+                // console.log("fomrStorage: " + fromStorage);
+                // if (fromStorage !== undefined) {
+                //   console.log("Got totalPoints: " + parseInt(fromStorage));
+                //   totalPoints = parseInt(fromStorage);
+                // }
 
             });
-            localStorage.setItem('totalPoints', totalPoints);
 
         }
 
@@ -237,6 +259,6 @@ function computePoints() {
 
 };
 
-findCountingList();
+setup();
 setInitialValue();
 //computePoints();
