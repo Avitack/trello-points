@@ -1,46 +1,32 @@
-/**
-
-TODO
-Bug: Counting "Done" points on first time loading the page
-
-**/
-
-// listName object
-$countingList = undefined;
-
-var pointsArray = []
+// list to keep track of, counting points
 var nameOfList = "Done";
-
+$countingList = undefined;
 var cardsInCountingList = [];
 
-// Save these values in browser-storage
-var lastKnownNumCards = 0;
-var totalPoints = 0;
-
+// current points in counting list
 var currentTotalPoints = 0;
 
-var numCards = 0;
-var isCounting = true;
+// total points from every session. Saved in local storage
+var totalPoints = 0;
 
 var isLoadedFirstTime = false;
 
+// html elements used
 var $checkboxSpanStart = $('<span class="list-checkbox">');
-
 var doneCountingHiddenFalse = '<input type="hidden" name="done-counting" value="false" />';
 var doneCountingHiddenTrue = '<input type="hidden" name="done-counting" value="true" />';
 
 // find countingList (nameOfList)
-// get totalPoints from localStorage
+// get totalPoints from local storage
 function setup() {
 
   chrome.storage.local.get({'totalPoints': 0}, function(result){
-    console.log("result: " + result.totalPoints);
     totalPoints = parseInt(result.totalPoints);
+    // start counting
+    setInitialValue();
   });
-  // if (fromStorage !== undefined) {
-    console.log("Got totalPoints: " + totalPoints);
-  //   totalPoints = parseInt(fromStorage);
-  // }
+
+  // console.log("Got totalPoints: " + totalPoints);
 
   var $list;
   var $listCards;
@@ -57,7 +43,6 @@ function setup() {
 
       if (listName === nameOfList) {
         $countingList = $(obj).find('.list-header-name');
-        return;
       }
 
   });
@@ -91,21 +76,18 @@ function setInitialValue() {
             // status about if value is undefined, has been counted, or has not been counted
             var countedStatus = $(listCard).find("[name='done-counting']").val();
 
+            // card mave moved from a list to another
             if (countedStatus === undefined) {
-                // card mave moved from a list to another
-                console.log("CARD MOVED: append false");
-                $(listCard).append(doneCountingHiddenFalse);
+
+              $(listCard).append(doneCountingHiddenFalse);
 
                 // if card came from counting list (listName), then decrease currentTotalPoints in listName accordingly to the change
                 var index = cardsInCountingList.indexOf(cardNameFull);
-                console.log("index: " + index);
                 if (index !== -1) {
-                  console.log("points before: " + currentTotalPoints);
                   currentTotalPoints -= parseInt(value);
                   cardsInCountingList.splice(index, 1);
-                  console.log("After removal: " + cardsInCountingList);
-                  console.log("points after: " + currentTotalPoints);
-                  // update total points displayed by Card name
+
+                  // update total points displayed by counting list
                   var updatedHeaderValue = "(" + currentTotalPoints + ") " + nameOfList;
                   $countingList.val(updatedHeaderValue);
                 }
@@ -114,16 +96,14 @@ function setInitialValue() {
             countedStatus = $(listCard).find("[name='done-counting']").val();
             if (listName === nameOfList) {
               if (!isLoadedFirstTime) {
-                console.log("value: " + parseInt(value));
                 currentTotalPoints += parseInt(value);
 
-                // update total points displayed by Card name
+                // update total points displayed by counting list
                 var updatedHeaderValue = "(" + currentTotalPoints + ") " + nameOfList;
                 $countingList.val(updatedHeaderValue);
 
-                  // $countingList = $(obj);
-                   $(listCard).append(doneCountingHiddenTrue);
-                   countedStatus = $(listCard).find("[name='done-counting']").val('true');
+                 $(listCard).append(doneCountingHiddenTrue);
+                  countedStatus = $(listCard).find("[name='done-counting']").val('true');
                    // add card to cards in cardsInCountingList
                    cardsInCountingList.push(cardNameFull);
               }
@@ -132,7 +112,6 @@ function setInitialValue() {
 
                 // cards not in listName list should be set to false
                 if (countedStatus === 'true') {
-                    console.log("INITIAL: set FALSE, from true");
                     $(listCard).find("[name='done-counting']").val('false');
                 }
             }
@@ -170,28 +149,21 @@ function computePoints() {
 
     var $list;
     var $listCards;
-
-
-    //console.log("\n DO CALCULATIONS:\n");
+    var numCards = 0;
 
     // Loop through all lists
     $('.list').each(function (i, obj) {
         $list = $(obj).find('.list-header-name');
 
+        // list info
         var listCount = $(obj).find('.list-header-name').text();
         var listSplit = listCount.split(/\(([^)]+)\)( )*([\s\S]*)/);
         var splittedFirst = listSplit[0];
         var listValue = listSplit[1];
         var listName = listSplit[3];
-        // console.log("splitted: " + listSplit);
-        // console.log("first: " + splittedFirst);
-        // console.log("listValue: " + listValue);
-        // console.log("listName: " + listName);
 
 
         if ((splittedFirst === nameOfList) || (listName === nameOfList)) {
-            //console.log("Title: " + $list.val());
-
 
             $listCards = $(obj).find('.list-cards');
 
@@ -200,36 +172,27 @@ function computePoints() {
             $listCards.find('.list-card').each(function (j, listCard) {
 
                 var countedStatus = $(listCard).find("[name='done-counting']").val();
-                // console.log("Counted status: " + countedStatus);
 
                 if (countedStatus === 'false') {
+                  //card info
                     var cardNameFull = $(listCard).find('.list-card-title').text();
-
                     var cardSplit = cardNameFull.split(/\(([^)]+)\)( )*([\s\S]*)/);
                     var cardFirst = cardSplit[0];
                     var value = cardSplit[1];
                     var cardName = cardSplit[3];
 
-
-                    // var valueSplit = cardName.split(/\(([^)]+)\)/);
-                    // var cardName = valueSplit[2];
-                    // var value = valueSplit[1];
-                    // console.log("Splitted: " + cardSplit);
-                    // console.log("Card name: " + cardName);
-                    // console.log("Value: " + value);
-
-
+                    // add points to totalPoints
                     if (value !== undefined) {
                         totalPoints += parseInt(value);
                         currentTotalPoints += parseInt(value);
 
                         // add card to cards in cardsInCountingList
                         cardsInCountingList.push(cardNameFull);
-                        console.log(cardsInCountingList);
 
+                        // set status as counted
                         $(listCard).find("[name='done-counting']").val('true');
 
-                        // update total points displayed by Card name
+                        // update total points displayed by counting list
                         var updatedHeaderValue = "(" + currentTotalPoints + ") " + listName;
                         $(obj).find('.list-header-name').val(updatedHeaderValue);
 
@@ -242,12 +205,6 @@ function computePoints() {
                     // some error
                   }
                 });
-                // var fromStorage = localStorage.getItem('totalPoints');
-                // console.log("fomrStorage: " + fromStorage);
-                // if (fromStorage !== undefined) {
-                //   console.log("Got totalPoints: " + parseInt(fromStorage));
-                //   totalPoints = parseInt(fromStorage);
-                // }
 
             });
 
@@ -260,5 +217,3 @@ function computePoints() {
 };
 
 setup();
-setInitialValue();
-//computePoints();
