@@ -7,10 +7,10 @@ Can be used as a way to prioritize tasks by assigning different points to each t
 This extension is intended to be used for a TODO type of board.
 By default, the list that contains all the finished items should be named 'Done'.
 
-<b>Assigning points to a task</b>
+<b>Assigning points to a task</b></br>
 You assign points to a card by appending '(value)' in front of the task name. In Trello a task is called a 'Card'.
 Example giving a Card a value of 20 points, by naming the Card:
   (20) Start using trello-points
 
-<b>Finishing a task</b>
+<b>Finishing a task</b></br>
 When you are finished with a task, you simple drag the Trello card over to the 'Done' list, which will then automatically count your points.
