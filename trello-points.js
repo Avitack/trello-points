@@ -5,6 +5,7 @@ var cardsInCountingList = [];
 
 // current points in counting list
 var currentTotalPoints = 0;
+var currentPointsInList = 0;
 
 // total points from every session. Saved in local storage
 var totalPoints = 0;
@@ -64,6 +65,9 @@ function setInitialValue() {
         var listValue = listSplit[1];
         var listName = listSplit[3];
 
+        // reset count for list
+        currentPointsInList = 0;
+
         $listCards.find('.list-card').each(function (j, listCard) {
 
             // get info about current card
@@ -109,7 +113,7 @@ function setInitialValue() {
               }
 
             } else {
-
+                currentPointsInList += parseInt(value);
                 // cards not in listName list should be set to false
                 if (countedStatus === 'true') {
                     $(listCard).find("[name='done-counting']").val('false');
@@ -212,7 +216,47 @@ function computePoints() {
 
     });
 
+    var lastDateRecorded;
+    var currentDate;
+    var pointsSaved;
 
+    date = new Date();
+    var day = date.getDate();
+    var month = date.getMonth() + 1;
+    var year = date.getFullYear();
+    currentDate = day+month+year;
+
+    chrome.storage.local.get({'lastDateRecorded': currentDate}, function(result){
+      lastDateRecorded = parseInt(result.lastDateRecorded);
+    });
+
+    // get all points saved
+    chrome.storage.local.get({pointsSaved: []}, function(result){
+      pointsSaved = parseInt(result.pointsSaved);
+    });
+
+    if (lastDateRecorded == currentDate) {
+      // update last entry of pointsSaved
+      pointsSaved[pointsSaved.length-1] += totalPoints;
+    } else {
+      // insert new entry in pointsSaved
+
+      // save last date recorded
+      chrome.storage.local.set({'lastDateRecorded': currentDate}, function(){
+        if (chrome.extension.lastError) {
+          // some error
+        }
+      });
+
+    }
+
+      // save updated pointsSaved
+      // update last date recorded
+      chrome.storage.local.set({'pointsSaved': pointsSaved}, function(){
+        if (chrome.extension.lastError) {
+          // some error
+        }
+      });
 
 };
 
